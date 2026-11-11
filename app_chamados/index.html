@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Chamados - Central do Franqueado</title>
+    <!-- Google Fonts Outfit, Inter & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="/shared-theme.css?v=1">
+</head>
+<body>
+    <div id="startup-loading" class="startup-loading">
+        <div class="startup-loader">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>sincronizando dados</span>
+        </div>
+    </div>
+    <div class="app-container">
+        <!-- Top Premium Navigation Bar -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Monitor de Chamados</h1>
+                    <p>Central do Franqueado · API v3</p>
+                </div>
+            </div>
+        
+        <div class="header-actions">
+            <!-- Polling/Sync connection status -->
+            <div id="sync-status" class="sync-status">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <span>Conectando...</span>
+            </div>
+            
+            <!-- Force manual sync button -->
+            <button id="btn-sync" class="btn-primary" title="Sincronizar chamados com a Central agora">
+                <i class="fa-solid fa-arrows-rotate"></i>
+                <span>Sincronizar</span>
+            </button>
+            
+            <!-- Settings Modal Trigger -->
+            <button id="btn-settings" class="btn-secondary" title="Configurar Alertas e Notificações do Windows">
+                <i class="fa-solid fa-gear"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="dashboard-container">
+        
+        <!-- KPI Dashboard Panel -->
+        <section class="kpi-grid">
+            <!-- Total Active KPI -->
+            <div class="kpi-card">
+                <div class="kpi-icon total">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Chamados Ativos</span>
+                    <strong id="val-total" class="kpi-value">-</strong>
+                </div>
+            </div>
+            
+            <!-- Waiting Franchisor KPI -->
+            <div class="kpi-card">
+                <div class="kpi-icon waiting-franchisor">
+                    <i class="fa-solid fa-reply-all"></i>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Aguardando Franqueador</span>
+                    <strong id="val-waiting-franchisor" class="kpi-value">-</strong>
+                </div>
+            </div>
+            
+            <!-- Waiting Franchisee KPI -->
+            <div class="kpi-card">
+                <div class="kpi-icon waiting-franchisee">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Aguardando Franqueado</span>
+                    <strong id="val-waiting-franchisee" class="kpi-value">-</strong>
+                </div>
+            </div>
+            
+            <!-- Critical Priority KPI -->
+            <div class="kpi-card">
+                <div class="kpi-icon critical">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="kpi-info">
+                    <span class="kpi-title">Críticos / Urgentes</span>
+                    <strong id="val-critical" class="kpi-value">-</strong>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Two-Column Content Grid -->
+        <div class="content-layout">
+            
+            <!-- Left Column: Filters and Collapsible Tickets List -->
+            <section class="main-column">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title-area">
+                            <h2>Chamados Ativos</h2>
+                            <div class="panel-header-actions">
+                                <button id="btn-toggle-filters" class="btn-toggle-filters" title="Ocultar ou mostrar filtros">
+                                    <i class="fa-solid fa-sliders"></i>
+                                    <span>Ocultar filtros</span>
+                                </button>
+                                <span class="badge" id="tickets-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="panel-body">
+                        <div id="filters-panel" class="filters-panel">
+                        <!-- Filters Grid Controls -->
+                        <div class="filters-grid">
+                            <!-- Text Query Search -->
+                            <div class="filter-group span-full">
+                                <label for="search-input">Buscar chamado</label>
+                                <div class="search-input-wrapper">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                    <input type="text" id="search-input" placeholder="Buscar por código, assunto, solicitante, franquia ou categoria...">
+                                </div>
+                            </div>
+                            
+                            <!-- Custom Selections -->
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-signal"></i> Status / Situação</label>
+                                <div class="custom-select multi-select" id="select-status">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todos os status</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-status">
+                                        <div class="option selected" data-value="all">Todos os status</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-user-tie"></i> Atendente</label>
+                                <div class="custom-select multi-select" id="select-attendant">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todos atendentes</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-attendant">
+                                        <div class="option selected" data-value="all">Todos atendentes</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-folder-open"></i> Categoria</label>
+                                <div class="custom-select multi-select" id="select-category">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todas categorias</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-category">
+                                        <div class="option selected" data-value="all">Todas categorias</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-store"></i> Franquia</label>
+                                <div class="custom-select multi-select" id="select-franchise">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todas franquias</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-franchise">
+                                        <div class="option selected" data-value="all">Todas franquias</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-circle-info"></i> Tipo de Chamado</label>
+                                <div class="custom-select multi-select" id="select-type">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todos</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-type">
+                                        <div class="option selected" data-value="all">Todos</div>
+                                        <div class="option" data-value="franchisee">Chamados de Franquias</div>
+                                        <div class="option" data-value="internal">Chamados Internos</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-reply"></i> Aguardando resposta de</label>
+                                <div class="custom-select multi-select" id="select-waiting">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Qualquer um</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-waiting">
+                                        <div class="option selected" data-value="all">Qualquer um</div>
+                                        <div class="option" data-value="franchisor">Franqueador (Suporte)</div>
+                                        <div class="option" data-value="franchisee">Franqueado (Solicitante)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label for="filter-stuck-days"><i class="fa-solid fa-clock"></i> Sem resposta há pelo menos (horas)</label>
+                                <input type="number" id="filter-stuck-days" min="0" placeholder="Ex: 2">
+                            </div>
+
+                            <div class="filter-group">
+                                <label for="filter-created-from"><i class="fa-solid fa-calendar-day"></i> Criado de</label>
+                                <input type="date" id="filter-created-from">
+                            </div>
+
+                            <div class="filter-group">
+                                <label for="filter-created-to"><i class="fa-solid fa-calendar-day"></i> Criado até</label>
+                                <input type="date" id="filter-created-to">
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-sort"></i> Ordenar por</label>
+                                <div class="custom-select" id="select-sort">
+                                    <div class="select-trigger" data-value="stuck-desc">
+                                        <span>Mais tempo sem resposta</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options">
+                                        <div class="option selected" data-value="stuck-desc">Mais tempo sem resposta</div>
+                                        <div class="option" data-value="stuck-asc">Menos tempo sem resposta</div>
+                                        <div class="option" data-value="date-desc">Mais novos (Criação)</div>
+                                        <div class="option" data-value="date-asc">Mais antigos (Criação)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reset filters button -->
+                        <div class="filters-actions">
+                            <button id="btn-clear-filters" class="btn-text">
+                                <i class="fa-solid fa-filter-circle-xmark"></i>
+                                Limpar filtros
+                            </button>
+                        </div>
+                        </div>
+                        
+                        <!-- Collapsible Tickets List -->
+                        <div class="tickets-list-container" style="margin-top: 20px;">
+                            <div id="tickets-list" class="tickets-list">
+                                <!-- Loaded dynamically via app.js -->
+                                <div class="empty-state">
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i>
+                                    <p>Carregando chamados...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination Bar Controls -->
+                        <div class="pagination-bar">
+                            <div class="pagination-info">
+                                Exibindo <span id="pag-start">0</span> a <span id="pag-end">0</span> de <span id="pag-total">0</span> chamados
+                            </div>
+                            
+                            <div class="pagination-sizes">
+                                <button class="btn-size" data-size="10">10</button>
+                                <button class="btn-size active" data-size="25">25</button>
+                                <button class="btn-size" data-size="50">50</button>
+                                <button class="btn-size" data-size="100">100</button>
+                            </div>
+                            
+                            <div class="pagination-navigation">
+                                <button id="pag-prev" class="btn-nav" disabled>
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </button>
+                                <span class="nav-pages">
+                                    Página <strong id="pag-current-num">1</strong> de <span id="pag-total-pages">1</span>
+                                </span>
+                                <button id="pag-next" class="btn-nav" disabled>
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right Column: Recent Changes Log feed -->
+            <section class="side-column">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Histórico de Situações</h2>
+                        <span class="badge" id="notifications-count">0</span>
+                    </div>
+                    
+                    <div class="panel-body list-column">
+                        <div id="notifications-list" class="notifications-feed">
+                            <!-- Loaded dynamically via app.js -->
+                            <div class="empty-state">
+                                <i class="fa-solid fa-bell-slash"></i>
+                                <p>Nenhuma alteração detectada recentemente.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel feedback-panel">
+                    <div class="panel-header">
+                        <h2>Feedback dos Chamados</h2>
+                        <span class="badge">Top 5</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="feedback-summary">
+                            <div class="feedback-summary-icon">
+                                <i class="fa-solid fa-star-half-stroke"></i>
+                            </div>
+                            <div>
+                                <span class="kpi-title">Rede global</span>
+                                <strong id="val-feedback" class="kpi-value">-</strong>
+                                <small id="val-feedback-detail" class="kpi-subvalue">sem avaliações</small>
+                            </div>
+                        </div>
+                        <div id="feedback-breakdown" class="feedback-breakdown"></div>
+                    </div>
+                </div>
+            </section>
+            
+        </div>
+    </main>
+</div>
+
+    <!-- Modal: Settings preferences panel -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Notificações do Windows</h3>
+                <button id="btn-close-modal" class="btn-close">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="settings-desc">
+                    Receba notificações nativas no Windows (estilo pop-up do WhatsApp) sempre que houver alteração de status ou novas respostas em chamados ativos.
+                </p>
+                
+                <!-- Native notifications toggle -->
+                <div class="settings-option">
+                    <label class="checkbox-label" style="font-weight: 600; font-size: 13px;">
+                        <input type="checkbox" id="chk-enable-native">
+                        <span class="custom-checkbox"></span>
+                        Habilitar notificações nativas do Windows
+                    </label>
+                </div>
+
+                <div class="settings-option">
+                    <label class="checkbox-label" style="font-weight: 600; font-size: 13px;">
+                        <input type="checkbox" id="chk-enable-sound" checked>
+                        <span class="custom-checkbox"></span>
+                        Tocar som quando houver novas notificações
+                    </label>
+                </div>
+                
+                <!-- Detailed status settings -->
+                <div class="settings-rules">
+                    <h4>Quais tipos de alertas você quer receber:</h4>
+                    <p class="settings-desc">Selecione quais atualizações de chamados exibir:</p>
+                    
+                    <div class="status-rules-list">
+                        <label class="checkbox-label" style="font-weight: 500; font-size: 12px; margin-bottom: 8px; display: block;">
+                            <input type="checkbox" id="chk-rule-new" checked>
+                            <span class="custom-checkbox"></span>
+                            Novos chamados criados
+                        </label>
+                        <label class="checkbox-label" style="font-weight: 500; font-size: 12px; margin-bottom: 8px; display: block;">
+                            <input type="checkbox" id="chk-rule-status" checked>
+                            <span class="custom-checkbox"></span>
+                            Alteração de situação de chamados
+                        </label>
+                        <label class="checkbox-label" style="font-weight: 500; font-size: 12px; margin-bottom: 8px; display: block;">
+                            <input type="checkbox" id="chk-rule-reply" checked>
+                            <span class="custom-checkbox"></span>
+                            Novas respostas enviadas no chamado
+                        </label>
+                        <label class="checkbox-label" style="font-weight: 500; font-size: 12px; margin-bottom: 8px; display: block;">
+                            <input type="checkbox" id="chk-rule-category" checked>
+                            <span class="custom-checkbox"></span>
+                            Alteração de categoria
+                        </label>
+                        <label class="checkbox-label" style="font-weight: 500; font-size: 12px; margin-bottom: 8px; display: block;">
+                            <input type="checkbox" id="chk-rule-attendant" checked>
+                            <span class="custom-checkbox"></span>
+                            Alteração de atendente
+                        </label>
+                    </div>
+                </div>
+
+                <div class="settings-rules">
+                    <h4>Filtrar notificações por responsabilidade:</h4>
+                    <p class="settings-desc">Deixe vazio para receber de todos. Marque atendentes e/ou categorias específicas para reduzir os alertas.</p>
+
+                    <div class="filter-group">
+                        <label>Atendentes notificados</label>
+                        <div class="custom-select multi-select" id="notif-select-attendant">
+                            <div class="select-trigger" data-value="all">
+                                <span>Todos atendentes</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="select-options" id="notif-options-attendant"></div>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Categorias notificadas</label>
+                        <div class="custom-select multi-select" id="notif-select-category">
+                            <div class="select-trigger" data-value="all">
+                                <span>Todas categorias</span>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
+                            <div class="select-options" id="notif-options-category"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="btn-cancel-settings" class="btn-secondary">Cancelar</button>
+                <button id="btn-save-settings" class="btn-primary">Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast alerts container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Frontend logic script -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitores Central</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="renderer.css">
+</head>
+<body>
+  <header class="shell-header">
+    <div class="brand">
+      <div class="brand-icon">MC</div>
+      <div>
+        <h1>Monitores Central</h1>
+        <p>Pedidos, chamados, BI e ferramentas</p>
+      </div>
+    </div>
+
+    <nav class="tabs" aria-label="Monitores">
+      <button class="tab active" data-target="dashboard">Dashboard</button>
+      <button class="tab" data-target="pedidos">Pedidos</button>
+      <button class="tab" data-target="chamados">Chamados</button>
+      <button class="tab" data-target="ferramentas">Ferramentas</button>
+    </nav>
+
+    <div class="actions">
+      <button id="open-browser" class="ghost-button">Abrir no navegador</button>
+    </div>
+  </header>
+
+  <main class="frames">
+    <section class="frame-panel active" id="panel-dashboard">
+      <iframe id="iframe-dashboard" title="Dashboard BI" src="about:blank"></iframe>
+    </section>
+    <section class="frame-panel" id="panel-pedidos">
+      <iframe id="iframe-pedidos" title="Monitor de Pedidos" src="about:blank"></iframe>
+    </section>
+    <section class="frame-panel" id="panel-chamados">
+      <iframe id="iframe-chamados" title="Monitor de Chamados" src="about:blank"></iframe>
+    </section>
+    <section class="frame-panel" id="panel-ferramentas">
+      <div class="tools-container">
+        <h2>Ferramentas de Planilhas</h2>
+        <p class="subtitle">Execute scripts utilitários integrados de planilhas</p>
+        
+        <div class="tools-grid">
+          
+          <!-- Tool 1: Processar Planilha -->
+          <div class="tool-card">
+            <div class="tool-icon"><i class="fa-solid fa-file-excel"></i></div>
+            <h3>Processar Planilha</h3>
+            <p>Limpa caracteres invisíveis, formata valores e converte arquivos Excel (.xlsx) para CSV.</p>
+            <div class="tool-fields">
+              <div class="field-group">
+                <label>Arquivo de Entrada (.xlsx)</label>
+                <div class="file-picker">
+                  <input type="text" id="proc-input-path" placeholder="Nenhum arquivo selecionado" readonly>
+                  <button class="select-btn" id="btn-select-proc-input">Selecionar</button>
+                </div>
+              </div>
+            </div>
+            <button class="run-btn" id="btn-run-processar">Executar Processamento</button>
+          </div>
+          
+          <!-- Tool 2: Corretor de CSV (Repair Tool) -->
+          <div class="tool-card">
+            <div class="tool-icon"><i class="fa-solid fa-wrench"></i></div>
+            <h3>Corretor de CSV</h3>
+            <p>Corrige quebras de linha acidentais e colunas desalinhadas em arquivos CSV com base no modelo.</p>
+            <div class="tool-fields">
+              <div class="field-group">
+                <label>Arquivo CSV Quebrado (.csv)</label>
+                <div class="file-picker">
+                  <input type="text" id="repair-input-path" placeholder="Nenhum arquivo selecionado" readonly>
+                  <button class="select-btn" id="btn-select-repair-input">Selecionar</button>
+                </div>
+              </div>
+            </div>
+            <button class="run-btn" id="btn-run-repair">Executar Reparo</button>
+          </div>
+
+          <!-- Tool 3: Divisor de CSV -->
+          <div class="tool-card">
+            <div class="tool-icon"><i class="fa-solid fa-scissors"></i></div>
+            <h3>Divisor de CSV</h3>
+            <p>Divide um arquivo CSV grande em vários arquivos menores com número definido de linhas.</p>
+            <div class="tool-fields">
+              <div class="field-group">
+                <label>Arquivo CSV de Entrada (.csv)</label>
+                <div class="file-picker">
+                  <input type="text" id="split-input-path" placeholder="Nenhum arquivo selecionado" readonly>
+                  <button class="select-btn" id="btn-select-split-input">Selecionar</button>
+                </div>
+              </div>
+              <div class="field-group">
+                <label>Linhas por Arquivo</label>
+                <input type="number" id="split-rows" value="100" min="1">
+              </div>
+            </div>
+            <button class="run-btn" id="btn-run-split">Executar Divisão</button>
+          </div>
+          
+        </div>
+
+        <!-- Real-time Console Log Output -->
+        <div class="console-log-wrapper">
+          <div class="console-header">
+            <span>Console de Execução</span>
+            <button id="btn-clear-console" class="clear-console-btn">Limpar Console</button>
+          </div>
+          <pre class="console-box" id="console-output">Aguardando execução de ferramenta...</pre>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- Global AI Assistant Floating Action Button -->
+  <button id="ai-chat-trigger" class="ai-chat-fab" title="Abrir Assistente de IA Global">
+    <i class="fa-solid fa-sparkles"></i>
+    <span>Assistente IA</span>
+  </button>
+
+  <!-- Global AI Assistant Drawer -->
+  <div id="ai-chat-drawer" class="ai-chat-drawer">
+    <div class="ai-drawer-header">
+      <div class="ai-drawer-title">
+        <div class="ai-avatar"><i class="fa-solid fa-brain"></i></div>
+        <div>
+          <h3>Assistente Monitores Central</h3>
+          <p>Inteligência Artificial (BI, Pedidos & Chamados)</p>
+        </div>
+      </div>
+      <button id="ai-drawer-close" class="ai-close-btn" title="Fechar Chat"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div id="ai-chat-messages" class="ai-messages-container">
+      <div class="ai-welcome-card">
+        <div class="welcome-icon"><i class="fa-solid fa-robot"></i></div>
+        <h4>Olá! Sou o Assistente Global do Monitores Central.</h4>
+        <p>Posso responder suas dúvidas e analisar dados de toda a rede:</p>
+        
+        <div class="ai-quick-prompts">
+          <button class="quick-chip" data-prompt="Qual o faturamento total da rede no último mês e o produto mais vendido?"><i class="fa-solid fa-chart-line"></i> Resumo do BI</button>
+          <button class="quick-chip" data-prompt="Quantos pedidos estão ativos e qual o valor total?"><i class="fa-solid fa-box"></i> Status dos Pedidos</button>
+          <button class="quick-chip" data-prompt="Quais chamados estão a mais tempo sem resposta do suporte?"><i class="fa-solid fa-headset"></i> Chamados Críticos</button>
+          <button class="quick-chip" data-prompt="Como usar a ferramenta de Corretor de CSV?"><i class="fa-solid fa-wrench"></i> Como usar Ferramentas</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ai-chat-input-wrapper">
+      <textarea id="ai-chat-input" placeholder="Pergunte sobre faturamento, pedidos, chamados ou ferramentas..." rows="1"></textarea>
+      <button id="ai-chat-send" class="ai-send-btn" title="Enviar Mensagem"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

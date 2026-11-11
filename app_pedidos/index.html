@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Pedidos - Central do Franqueado</title>
+    
+    <!-- Premium Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Stylesheet -->
+    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="/shared-theme.css?v=1">
+</head>
+<body>
+    <div id="startup-loading" class="startup-loading">
+        <div class="startup-loader">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <span>sincronizando dados</span>
+        </div>
+    </div>
+
+    <div class="app-container">
+        
+        <!-- Header Section -->
+        <header class="app-header">
+            <div class="header-brand">
+                <div class="logo-icon">
+                    <i class="fa-solid fa-boxes-stacked"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>Central do Franqueado</h1>
+                    <p>Dashboard de Monitoramento de Pedidos</p>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <div class="sync-status" id="sync-status">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>Sincronizando...</span>
+                </div>
+                <button class="btn-sync" id="btn-sync" title="Sincronizar dados agora">
+                    <i class="fa-solid fa-arrows-rotate" id="sync-icon"></i>
+                    <span>Sincronizar</span>
+                </button>
+                <button class="btn-settings" id="btn-settings" title="Configurações de Notificações no Windows">
+                    <i class="fa-solid fa-gear"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- KPI / Metrics Summary Section -->
+        <section class="metrics-section">
+            <div class="metric-card" id="metric-total">
+                <div class="metric-icon total">
+                    <i class="fa-solid fa-list-check"></i>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Pedidos em Aberto</span>
+                    <h2 class="metric-value" id="val-total">-</h2>
+                </div>
+            </div>
+            
+            <div class="metric-card" id="metric-waiting">
+                <div class="metric-icon waiting">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Aguardando Aprovação</span>
+                    <h2 class="metric-value" id="val-waiting">-</h2>
+                </div>
+            </div>
+            
+            <div class="metric-card warning" id="metric-stuck-3d">
+                <div class="metric-icon stuck-medium">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Sem Alteração (> 3 dias)</span>
+                    <h2 class="metric-value" id="val-stuck-3d">-</h2>
+                </div>
+            </div>
+            
+            <div class="metric-card danger" id="metric-stuck-7d">
+                <div class="metric-icon stuck-high">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="metric-content">
+                    <span class="metric-label">Sem Alteração (> 7 dias)</span>
+                    <h2 class="metric-value" id="val-stuck-7d">-</h2>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Dashboard Content Grid -->
+        <div class="dashboard-grid">
+            
+            <!-- Left Panel: Filters & Active Orders List -->
+            <section class="orders-panel">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <h2>Pedidos Ativos</h2>
+                        <div class="panel-header-actions">
+                            <button id="btn-toggle-filters" class="btn-toggle-filters" title="Ocultar ou mostrar filtros">
+                                <i class="fa-solid fa-sliders"></i>
+                                <span>Ocultar filtros</span>
+                            </button>
+                            <span class="badge" id="orders-count">0</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Search and Filters bar -->
+                    <div class="filters-container">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="search-input" placeholder="Buscar por código, fornecedor, franquia ou produto...">
+                        </div>
+                        
+                        <div class="filters-row">
+                            <!-- Custom Inactivity Input -->
+                            <div class="filter-group">
+                                <label for="filter-stuck-days"><i class="fa-solid fa-hourglass"></i> Inatividade (dias)</label>
+                                <input type="number" id="filter-stuck-days" min="0" placeholder="Ex: 5">
+                            </div>
+                            
+                            <!-- Custom Supplier Select -->
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-truck-ramp-box"></i> Fornecedor</label>
+                                <div class="custom-select multi-select" id="select-supplier">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todos fornecedores</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-supplier">
+                                        <!-- populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom Franchise Select -->
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-store"></i> Franquia</label>
+                                <div class="custom-select multi-select" id="select-franchise">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todas franquias</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-franchise">
+                                        <!-- populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-list-check"></i> Situação</label>
+                                <div class="custom-select multi-select" id="select-status">
+                                    <div class="select-trigger" data-value="all">
+                                        <span>Todas situações</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options" id="options-status">
+                                        <!-- populated dynamically -->
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Custom Sort Select -->
+                            <div class="filter-group">
+                                <label><i class="fa-solid fa-sort"></i> Ordenar por</label>
+                                <div class="custom-select" id="select-sort">
+                                    <div class="select-trigger" data-value="stuck-desc">
+                                        <span>Mais tempo sem alteração</span>
+                                        <i class="fa-solid fa-chevron-down"></i>
+                                    </div>
+                                    <div class="select-options">
+                                        <div class="option selected" data-value="stuck-desc">Mais tempo sem alteração</div>
+                                        <div class="option" data-value="stuck-asc">Menos tempo sem alteração</div>
+                                        <div class="option" data-value="date-desc">Mais novos (criação)</div>
+                                        <div class="option" data-value="date-asc">Mais antigos (criação)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn-clear-filters" id="btn-clear-filters" title="Limpar Filtros">
+                                <i class="fa-solid fa-filter-circle-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Orders Container -->
+                <div class="orders-list-wrapper">
+                    <div class="orders-list" id="orders-list">
+                        <!-- Loading placeholder -->
+                        <div class="loading-state">
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                            <p>Carregando pedidos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination Bar -->
+                <div class="pagination-container">
+                    <div class="pagination-info">
+                        Exibindo <span id="pag-start">0</span> a <span id="pag-end">0</span> de <span id="pag-total">0</span> pedidos
+                    </div>
+                    <div class="pagination-controls">
+                        <button class="btn-pag" id="pag-prev" title="Página Anterior">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span class="pag-current">Página <span id="pag-current-num">1</span> de <span id="pag-total-pages">1</span></span>
+                        <button class="btn-pag" id="pag-next" title="Próxima Página">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="pagination-size">
+                        <span>Mostrar:</span>
+                        <div class="size-buttons">
+                            <button class="btn-size" data-size="10">10</button>
+                            <button class="btn-size active" data-size="25">25</button>
+                            <button class="btn-size" data-size="50">50</button>
+                            <button class="btn-size" data-size="100">100</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Right Panel: Notification Logs -->
+            <aside class="notifications-panel">
+                <div class="panel-header">
+                    <div class="panel-title-area">
+                        <h2>Histórico de Situações</h2>
+                        <span class="badge notification-badge" id="notifications-count">0</span>
+                    </div>
+                </div>
+                
+                <div class="notifications-list-wrapper">
+                    <div class="notifications-list" id="notifications-list">
+                        <!-- Empty state placeholder -->
+                        <div class="empty-state">
+                            <i class="fa-solid fa-bell-slash"></i>
+                            <p>Nenhuma alteração de situação detectada recentemente.</p>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+        </div>
+        
+        <!-- Toast Container for Realtime Alerts -->
+        <div class="toast-container" id="toast-container"></div>
+        
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div class="modal-overlay" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-bell"></i> Configurações de Notificação</h3>
+                <button class="btn-close-modal" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="settings-group">
+                    <label class="checkbox-label toggle-system">
+                        <input type="checkbox" id="chk-enable-native">
+                        <span class="custom-checkbox"></span>
+                        <span class="toggle-label-text">Ativar notificações nativas do Windows</span>
+                    </label>
+                    <p class="settings-desc">Permite que o navegador exiba balões de notificação do Windows quando houver alterações de status em segundo plano.</p>
+                </div>
+
+                <div class="settings-group">
+                    <label class="checkbox-label toggle-system">
+                        <input type="checkbox" id="chk-enable-sound" checked>
+                        <span class="custom-checkbox"></span>
+                        <span class="toggle-label-text">Tocar som quando houver novas notificações</span>
+                    </label>
+                    <p class="settings-desc">Emite um alerta sonoro curto junto com os avisos visuais do painel.</p>
+                </div>
+                
+                <div class="status-rules-section">
+                    <h4>Filtrar por Situações</h4>
+                    <p class="settings-desc">Selecione quais situações devem disparar notificações. Desmarque para ignorar.</p>
+                    
+                    <div class="status-rules-list" id="status-rules-list">
+                        <!-- filled dynamically -->
+                        <div class="loading-state" style="padding: 10px;">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 16px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="btn-cancel-settings">Cancelar</button>
+                <button class="btn-primary" id="btn-save-settings">Salvar Configurações</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic -->
+    <script src="app.js"></script>
+</body>
+</html>

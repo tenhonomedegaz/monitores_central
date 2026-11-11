@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BI Standalone - Santoline</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Style CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <i class="fa-solid fa-chart-line header-logo-icon"></i>
+                <div class="header-title-group">
+                    <h1 class="header-title">Santoline BI</h1>
+                    <p class="header-subtitle">Franquias & Giro de Estoque (Dados em Tempo Real via API)</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div id="dataQualityBadge" style="display: flex; align-items: center; gap: 0.5rem; background: rgba(30, 187, 162, 0.1); border: 1px solid rgba(30, 187, 162, 0.2); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.75rem; font-weight: 600; color: var(--brand-primary);">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Qualidade dos Dados: <strong id="qualityScore">100%</strong></span>
+                    <span style="opacity: 0.4;">|</span>
+                    <span>Sinc: <strong id="lastSyncTime">Aguardando...</strong></span>
+                </div>
+                <button id="themeToggle" class="btn btn-icon-round" title="Alternar Tema">
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Filters Section -->
+        <section class="filters-card">
+            <form id="filtersForm" class="filters-form">
+                <div class="date-filters">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-regular fa-calendar"></i> Data Inicial</label>
+                        <input type="date" id="dataInicio" name="dataInicio" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fa-regular fa-calendar"></i> Data Final</label>
+                        <input type="date" id="dataFim" name="dataFim" class="form-control">
+                    </div>
+                </div>
+
+                <div class="store-filters">
+                    <div class="store-header">
+                        <label class="form-label"><i class="fa-solid fa-store"></i> Filiais / Lojas</label>
+                        <div class="store-actions">
+                            <button type="button" id="btnSelectAll" class="btn-text">Marcar Todas</button>
+                            <button type="button" id="btnDeselectAll" class="btn-text">Desmarcar Todas</button>
+                        </div>
+                    </div>
+                    <div id="storeChipsContainer" class="store-chips-grid">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </form>
+        </section>
+
+        <!-- Loading State -->
+        <div id="loadingOverlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p>Carregando dados da API Varejoonline...</p>
+        </div>
+
+        <!-- Dashboard Content -->
+        <main id="dashboardContent" class="dashboard-grid">
+            <!-- KPIs Row -->
+            <div class="kpi-row col-span-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon-wrapper faturamento-color">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Faturamento Total
+                            <span class="tooltip-trigger"><i class="fa-solid fa-circle-question"></i><span class="tooltip-box">Faturamento bruto total faturado no período selecionado.</span></span>
+                        </span>
+                        <h2 id="kpiFaturamento" class="kpi-value">R$ 0,00</h2>
+                        <span id="kpiVendasCount" class="kpi-subtext">0 vendas concluídas</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-wrapper ticket-color">
+                        <i class="fa-solid fa-receipt"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Ticket Médio
+                            <span class="tooltip-trigger"><i class="fa-solid fa-circle-question"></i><span class="tooltip-box">Valor médio gasto por venda concluída (Faturamento / Qtd. Vendas).</span></span>
+                        </span>
+                        <h2 id="kpiTicketMedio" class="kpi-value">R$ 0,00</h2>
+                        <span class="kpi-subtext">por venda faturada</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-wrapper stores-color">
+                        <i class="fa-solid fa-store"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Lojas Ativas
+                            <span class="tooltip-trigger"><i class="fa-solid fa-circle-question"></i><span class="tooltip-box">Número de filiais/lojas selecionadas no filtro.</span></span>
+                        </span>
+                        <h2 id="kpiLojasCount" class="kpi-value">0</h2>
+                        <span class="kpi-subtext">consultadas no período</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-wrapper capital-color">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Capital Travado
+                            <span class="tooltip-trigger"><i class="fa-solid fa-circle-question"></i><span class="tooltip-box">Valor de custo estimado imobilizado nos 10 produtos de menor giro de estoque.</span></span>
+                        </span>
+                        <h2 id="kpiCapitalTravado" class="kpi-value">R$ 0,00</h2>
+                        <span class="kpi-subtext">estoque parado sem giro</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-wrapper concentracao-color">
+                        <i class="fa-solid fa-award"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Concentração de Receita
+                            <span class="tooltip-trigger"><i class="fa-solid fa-circle-question"></i><span class="tooltip-box">Filial com maior faturamento e sua representação percentual do total.</span></span>
+                        </span>
+                        <h2 id="kpiConcentracao" class="kpi-value" style="font-size: 1.15rem; font-weight: 700; margin-top: 0.5rem; word-break: break-all;">Aguardando...</h2>
+                        <span class="kpi-subtext">risco de dependência de filial</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-icon-wrapper sync-color">
+                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                    </div>
+                    <div class="kpi-content">
+                        <span class="kpi-label">Status API
+                            <span class="tooltip-trigger"><i class="fa-solid fa-circle-question"></i><span class="tooltip-box">Status de comunicação com a API Varejoonline e taxa de sucesso.</span></span>
+                        </span>
+                        <h2 id="kpiStatusApi" class="kpi-value" style="color: var(--brand-success);">ONLINE</h2>
+                        <span class="kpi-subtext">Taxa de sucesso: 100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="chart-card col-span-1">
+                <h3 class="card-title"><i class="fa-solid fa-chart-area"></i> Evolução das Vendas</h3>
+                <div class="chart-container">
+                    <canvas id="chartEvolucao"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card col-span-2">
+                <h3 class="card-title"><i class="fa-solid fa-clock"></i> Horários de Pico (Geral)</h3>
+                <div class="chart-container">
+                    <canvas id="chartHorarios"></canvas>
+                </div>
+            </div>
+
+            <!-- Rankings Section -->
+            <!-- Coluna 1: Ranking por Filial (Dropdown) -->
+            <div class="ranking-card">
+                <div class="ranking-header">
+                    <h3 class="card-title"><i class="fa-solid fa-location-dot"></i> Top 10 por Filial</h3>
+                    <select id="rankingFilialSelect" class="form-select">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="table-responsive">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Produto / SKU</th>
+                                <th>Qtd.</th>
+                                <th>Faturamento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRankingFilial">
+                            <tr><td colspan="3" class="table-empty">Selecione uma filial para ver os dados.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Coluna 2: Ranking Global -->
+            <div class="ranking-card">
+                <h3 class="card-title"><i class="fa-solid fa-globe"></i> Top 10 Global da Rede</h3>
+                <div class="table-responsive">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Produto / SKU</th>
+                                <th>Qtd.</th>
+                                <th>Faturamento</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRankingGlobal">
+                            <tr><td colspan="3" class="table-empty">Nenhum dado de venda.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Coluna 3: Produtos Sem Giro -->
+            <div class="ranking-card">
+                <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Menor Giro de Estoque</h3>
+                <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; padding: 0 4px;">
+                    <strong>Fórmula do Score:</strong> (Estoque × Dias sem Venda) / √Preço. Produtos mais caros têm score atenuado. Itens com preço ≤ custo ou preço < R$ 5,00 são descartados da análise.
+                </p>
+                <div class="table-responsive">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Produto / SKU</th>
+                                <th>Vendas</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyRankingSemGiro">
+                            <tr><td colspan="3" class="table-empty">Nenhum dado catalogado.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- App Script -->
+    <script src="app.js"></script>
+</body>
+</html>

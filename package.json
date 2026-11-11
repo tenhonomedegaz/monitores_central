@@ -1,0 +1,67 @@
+{
+  "name": "monitores-central",
+  "version": "1.1.9",
+  "description": "Monitor local de pedidos e chamados em app desktop",
+  "main": "desktop/main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:servers": "python -m py_compile server.py",
+    "build": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win portable",
+    "release": "npm run build:servers && npm run build && npm run build:portable"
+  },
+  "build": {
+    "appId": "br.local.monitorescentral",
+    "productName": "Monitores Central",
+    "asar": false,
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "desktop/**/*",
+      "build/**/*",
+      "app_dashboard/**/*",
+      "!app_dashboard/inventory_cache.json*",
+      "app_chamados/**/*",
+      "!app_chamados/*state.json*",
+      "!app_chamados/notificacoes*.json*",
+      "!app_chamados/preferencias_notificacoes.json*",
+      "app_pedidos/**/*",
+      "!app_pedidos/*state.json*",
+      "!app_pedidos/notificacoes*.json*",
+      "!app_pedidos/preferencias_notificacoes.json*",
+      "tools/**/*",
+      "python_runtime/**/*",
+      "server.py",
+      "shared-theme.css",
+      "package.json",
+      "!.env",
+      "!.env.*",
+      "!sales_cache.json",
+      "!products_cache.json",
+      "!sync_status.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "include": "build/installer.nsh",
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Monitores Central",
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  }
+}

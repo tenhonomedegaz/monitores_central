@@ -1,0 +1,26 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.vscode/
+.idea/
+*state.json
+notificacoes.json
+notificacoes_chamados.json
+preferencias_notificacoes.json
+*.bak
+node_modules/
+dist/
+runtime/
+build_pyinstaller/
+*.spec
+python_runtime/
+# Local caches may contain proprietary business/transaction data
+sales_cache.json
+products_cache.json
+sync_status.json
+app_dashboard/inventory_cache.json
